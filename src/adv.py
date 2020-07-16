@@ -1,10 +1,12 @@
+import sys
 from room import Room
+from player import Explorer
 
 # Declare all the rooms
 
 room = {
     'outside':  Room("Outside Cave Entrance",
-                     "North of you, the cave mount beckons"),
+                     "North of you, the cave mouth beckons."),
 
     'foyer':    Room("Foyer", """Dim light filters in from the south. Dusty
 passages run north and east."""),
@@ -19,7 +21,11 @@ to north. The smell of gold permeates the air."""),
     'treasure': Room("Treasure Chamber", """You've found the long-lost treasure
 chamber! Sadly, it has already been completely emptied by
 earlier adventurers. The only exit is to the south."""),
+
+    'death': Room("Death", """You died.""")
 }
+
+
 
 
 # Link rooms together
@@ -29,6 +35,7 @@ room['foyer'].s_to = room['outside']
 room['foyer'].n_to = room['overlook']
 room['foyer'].e_to = room['narrow']
 room['overlook'].s_to = room['foyer']
+room['overlook'].n_to = room['death']
 room['narrow'].w_to = room['foyer']
 room['narrow'].n_to = room['treasure']
 room['treasure'].s_to = room['narrow']
@@ -38,6 +45,14 @@ room['treasure'].s_to = room['narrow']
 #
 
 # Make a new player object that is currently in the 'outside' room.
+
+
+name = input("Enter your name:")
+p = Explorer(name, room["outside"])
+message = ""
+
+print("Welcome, " + name + ".")
+print(p.room.name)
 
 # Write a loop that:
 #
@@ -49,3 +64,47 @@ room['treasure'].s_to = room['narrow']
 # Print an error message if the movement isn't allowed.
 #
 # If the user enters "q", quit the game.
+
+while True:
+    print(f"You arrive at the {p.room.name}.")
+    print(f"{p.room.description}")
+    print(message)
+    print("""Controls
+        n: go north
+        w: go west
+        s: go south
+        e: go east
+        q: quit
+    """)
+    message = ""
+    action = input(">> ")
+
+    if action == 'n':
+        if hasattr(p.room, 'n_to'):
+            p.room = p.room.n_to
+            if p.room == room['death']:
+                print(f"You jump into the chasm. You die, {name}. Great job.")
+                sys.exit()
+        else:
+            message = f"You can't go that way, {name}. Try again."
+
+    elif action == 's':
+        if hasattr(p.room, 's_to'):
+            p.room = p.room.s_to
+        else:
+            message = f"You can't go that way, {name}. Try again."
+    elif action == 'e':
+        if hasattr(p.room, 'e_to'):
+            p.room = p.room.e_to
+        else:
+            message = f"You can't go that way, {name}. Try again."
+    elif action == 'w':
+        if hasattr(p.room, 'w_to'):
+            p.room = p.room.w_to
+        else:
+            message = f"You can't go that way, {name}. Try again."
+    elif action == 'q':
+        print("Goodbye.")
+        sys.exit()
+    else:
+        message = f"Would you like to pick a valid selection, {name}?"
